@@ -30,13 +30,13 @@ export default function TeamsPublicPanel() {
       <h1 className="text-3xl font-bold mb-8 text-center">Equipos del Campeonato</h1>
 
       {teams.map(team => (
-        <div key={team.id} className="mb-8 bg-[#162c35] p-4 rounded-xl shadow-lg">
+        <div key={team.id} className="mb-8 bg-[#162c35] p-4 rounded-xl shadow-lg text-center">
           <h2 className="text-2xl font-semibold mb-4">{team.name}</h2>
           <table className="min-w-full border-collapse border border-gray-600 text-lg">
             <thead>
               <tr className="bg-gray-700">
-                <th className="p-3 border border-gray-600">Dorsal</th>
-                <th className="p-3 border border-gray-600">Jugador</th>
+                <th className="p-3 border border-gray-600 text-center">Dorsal</th>
+                <th className="p-3 border border-gray-600 text-center">Jugador</th>
               </tr>
             </thead>
             <tbody>
