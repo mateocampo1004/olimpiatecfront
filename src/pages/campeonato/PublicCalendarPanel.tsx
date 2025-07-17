@@ -23,11 +23,11 @@ export default function PublicCalendarPanel() {
         <table className="min-w-full border-collapse border border-gray-700 text-white">
           <thead className="bg-[#1f3a45] text-lg">
             <tr>
-              <th className="p-3 border border-gray-700">Fecha</th>
-              <th className="p-3 border border-gray-700">Hora</th>
-              <th className="p-3 border border-gray-700">Local</th>
-              <th className="p-3 border border-gray-700">Visitante</th>
-              <th className="p-3 border border-gray-700">Lugar</th>
+              <th className="p-3 border border-gray-700 text-center">Fecha</th>
+              <th className="p-3 border border-gray-700 text-center">Hora</th>
+              <th className="p-3 border border-gray-700 text-center">Local</th>
+              <th className="p-3 border border-gray-700 text-center">Visitante</th>
+              <th className="p-3 border border-gray-700 text-center">Lugar</th>
             </tr>
           </thead>
           <tbody>

@@ -61,21 +61,21 @@ export default function CampeonatoPublicPanel() {
       <div className="campeonato-header">
         <div className="header-content">
           <div className="title-section">
-            <h1 className="campeonato-title">🏆 OLIMPIATEC 2025</h1>
-            <p className="campeonato-subtitle">Seguimiento del Campeonato de Fútbol</p>
+            <h1 className="campeonato-title text-center">🏆 OLIMPIATEC 2025</h1>
+            <p className="campeonato-subtitle text-center">Seguimiento del Campeonato de Fútbol</p>
           </div>
           <div className="stats-quick">
             <div className="stat-item">
               <span className="stat-number">{stats.equipos}</span>
-              <span className="stat-label">Equipos</span>
+              <span className="stat-label text-center">Equipos</span>
             </div>
             <div className="stat-item">
               <span className="stat-number">{stats.partidos}</span>
-              <span className="stat-label">Partidos</span>
+              <span className="stat-label text-center">Partidos</span>
             </div>
             <div className="stat-item">
               <span className="stat-number">{stats.jugadores}</span>
-              <span className="stat-label">Jugadores</span>
+              <span className="stat-label text-center">Jugadores</span>
             </div>
           </div>
         </div>
