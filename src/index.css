@@ -638,3 +638,31 @@ tr:hover {
 .text-white {
   color: #fff !important;
 }
+
+/* Cambia el color de las letras de los días del mes */
+.rbc-month-view .rbc-date-cell,
+.rbc-month-view .rbc-off-range,
+.rbc-month-view .rbc-current {
+  color: #fff !important;
+}
+
+/* Cambia el color de los nombres de los días de la semana */
+.rbc-header {
+  color: #fff !important;
+  background: transparent;
+}
+
+/* Cambia el color de los textos de navegación (Ant, Hoy, Sig) */
+.rbc-toolbar button,
+.rbc-toolbar span,
+.rbc-toolbar .rbc-toolbar-label {
+  color: #fff !important;
+  background: transparent !important;
+  border: none;
+}
+/* Texto "No hay partidos en este rango" en agenda y mes */
+.rbc-agenda-empty, 
+.rbc-month-view .rbc-allday-cell {
+  color: #fff !important;
+  font-weight: 500;
+}

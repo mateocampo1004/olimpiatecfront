@@ -104,7 +104,7 @@ export default function ConfirmDialog({
         .confirm-overlay {
           position: fixed;
           top: 0; left: 0; right: 0; bottom: 0;
-          background: rgba(18,18,18,0.78);
+          background: rgba(152, 153, 178, 0.78);
           backdrop-filter: blur(8px) saturate(160%);
           display: flex;
           align-items: center;
@@ -115,12 +115,12 @@ export default function ConfirmDialog({
         }
 
         .confirm-dialog {
-          background: #18181b;
+          background:rgb(39, 39, 143);
           border-radius: 2rem;
           padding: 38px 28px 28px 28px;
           max-width: 380px;
           width: 100%;
-          box-shadow: 0 12px 36px 0 rgba(0,0,0,0.32), 0 0 0 1.5px #2223;
+          box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.32), 0 0 0 1.5px #2223;
           animation: slideUp 0.22s cubic-bezier(.23,1.24,.32,1) both;
           text-align: center;
           color: #f3f4f6;
@@ -184,11 +184,11 @@ export default function ConfirmDialog({
         .confirm-cancel {
           background: transparent;
           color: #cbd5e1;
-          border-color: #33343e;
+          border-color:rgb(39, 54, 215);
         }
         .confirm-cancel:hover, .confirm-cancel:focus {
-          background: #22223a;
-          border-color: #3f4153;
+          background:rgb(21, 21, 208);
+          border-color:rgb(21, 21, 208);
           color: #fff;
         }
         .confirm-confirm {

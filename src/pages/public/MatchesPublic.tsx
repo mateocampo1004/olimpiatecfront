@@ -171,7 +171,7 @@ export default function MatchesPublic() {
             style={{
               minWidth: 120,
               boxShadow: view === "tabla"
-                ? "0 4px 20px 0 rgba(34, 197, 253, 0.16)"
+                ? "0 4px 20px 0 rgb(255, 255, 255)"
                 : undefined
             }}
             onClick={() => setView("tabla")}
@@ -276,7 +276,7 @@ export default function MatchesPublic() {
 
       {/* CALENDARIO */}
       {view !== "tabla" && (
-        <div>
+        <div >
           <Calendar
             culture="es"
             localizer={localizer}

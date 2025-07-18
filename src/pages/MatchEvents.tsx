@@ -170,13 +170,13 @@ export default function MatchEvents() {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-2xl font-bold text-center mb-6">Eventos del Partido #{matchId}</h2>
+      <h2 className="text-2xl font-bold text-center text-white mb-6">Eventos del Partido #{matchId}</h2>
 
       {allowForm && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
           {[homeTeamName, awayTeamName].map((teamName, idx) => (
             <div key={idx} className="p-4 border rounded shadow">
-              <h3 className="text-lg font-semibold mb-3 text-center text-blue-700">
+              <h3 className="text-white font-semibold mb-3 text-center text-blue-700">
                 Registrar Evento - {teamName}
               </h3>
               <div className="flex flex-col gap-3">
@@ -224,8 +224,8 @@ export default function MatchEvents() {
       )}
 
       <section>
-        <h3 className="text-lg font-semibold mb-3">Eventos Registrados</h3>
-        <div className="grid grid-cols-2 gap-6">
+        <h3 className="text-white font-semibold mb-3">Eventos Registrados</h3>
+        <div className="grid text-white grid-cols-2 gap-6">
           {[homeTeamName, awayTeamName].map((teamName, idx) => (
             <div key={idx}>
               <h4 className={`font-bold mb-2 ${idx === 0 ? "text-blue-700" : "text-red-700"}`}>{teamName}</h4>
@@ -234,7 +234,7 @@ export default function MatchEvents() {
                 🟨 {countEvents(teamName, "TARJETA", "AMARILLA")} &nbsp;&nbsp;
                 🟥 {countEvents(teamName, "TARJETA", "ROJA")}
               </div>
-              <ul className="list-disc list-inside text-sm">
+              <ul className="list-disc list-inside text-white">
                 {events.filter(e => e.teamName === teamName).map(e =>
                   editingEventId === e.id ? (
                     <li key={e.id}>
