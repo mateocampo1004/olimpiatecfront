@@ -35,6 +35,7 @@ export default function MatchManager() {
   const [error, setError] = useState<string | null>(null);
   const [editId, setEditId] = useState<number | null>(null);
   const [message, setMessage] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   // ConfirmDialog state
   const [confirmDialog, setConfirmDialog] = useState<{ isOpen: boolean; matchId?: number }>({ isOpen: false });
@@ -51,10 +52,8 @@ export default function MatchManager() {
     getMatches()
       .then((data) => {
         const sorted = data.slice().sort((a, b) => {
-          if (a.date !== b.date) {
-            return b.date.localeCompare(a.date);
-          }
-          return b.startTime.localeCompare(a.startTime);
+          if (a.date !== b.date) return b.date.localeCompare(a.date);
+          return a.startTime.localeCompare(b.startTime);
         });
         setMatches(sorted);
       })
@@ -161,163 +160,64 @@ export default function MatchManager() {
   const localOptions = teams.filter((t) => t.id !== form.awayTeamId);
   const visitanteOptions = teams.filter((t) => t.id !== form.homeTeamId);
 
+  // Traducción de estado para el filtro
+  const estadoTraducido = (status: string) => {
+    switch (status) {
+      case "PENDING": return "pendiente";
+      case "COMPLETED": return "jugado";
+      case "CANCELLED": return "cancelado";
+      default: return status.toLowerCase();
+    }
+  };
+
+  // Filtro mejorado
+  const filteredMatches = matches.filter((m) => {
+    const matchStatus = estadoTraducido(m.status);
+    return (
+      m.homeTeamName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      m.awayTeamName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      m.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      matchStatus.includes(searchTerm.toLowerCase()) ||
+      m.date.includes(searchTerm) ||
+      m.startTime.includes(searchTerm)
+    );
+  });
+
   return (
     <div className="match-manager-main">
-      <style>
-        {`
-        .match-manager-main {
-          background: #f8fafc;
-          padding: 40px 0;
-          min-height: 100vh;
-        }
-        .match-manager-container {
-          background: #fff;
-          border-radius: 14px;
-          box-shadow: 0 4px 24px #0001;
-          max-width: 900px;
-          margin: 0 auto;
-          padding: 30px 30px 40px 30px;
-        }
-        .mm-header {
-          text-align: center;
-          font-size: 2rem;
-          font-weight: bold;
-          letter-spacing: 1px;
-          margin-bottom: 32px;
-        }
-        .mm-teams-row {
-          display: flex;
-          align-items: stretch;
-          justify-content: center;
-          gap: 32px;
-          margin-bottom: 18px;
-        }
-        .mm-card {
-          background: #f1f5f9;
-          flex: 1;
-          padding: 24px 18px;
-          border-radius: 12px;
-          text-align: center;
-          box-shadow: 0 2px 10px #0001;
-          min-width: 180px;
-        }
-        .mm-card label {
-          font-size: 1.15rem;
-          font-weight: 500;
-          margin-bottom: 10px;
-          display: block;
-          color: #222;
-        }
-        .mm-card select {
-          font-size: 1rem;
-          width: 90%;
-          padding: 9px 8px;
-          border-radius: 6px;
-          border: 1px solid #cbd5e1;
-          margin-top: 10px;
-          background: #fff;
-          color: #222;
-        }
-        .mm-vs {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 2.2rem;
-          font-weight: bold;
-          color: #64748b;
-          min-width: 65px;
-        }
-        .mm-fields-row {
-          display: flex;
-          gap: 18px;
-          margin-bottom: 18px;
-          align-items: flex-end;
-        }
-        .mm-fields-row > div {
-          flex: 1;
-        }
-        .mm-fields-row label {
-          font-size: 1rem;
-          font-weight: 500;
-          color: #222;
-        }
-        .mm-fields-row input, .mm-fields-row select {
-          width: 100%;
-          font-size: 1rem;
-          border-radius: 6px;
-          border: 1px solid #cbd5e1;
-          padding: 8px 8px;
-          margin-top: 5px;
-          background: #fff;
-          color: #222;
-        }
-        .mm-fields-row input:focus, .mm-fields-row select:focus, .mm-card select:focus {
-          border: 1.5px solid #2563eb;
-          outline: none;
-        }
-        .mm-btns-row {
-          display: flex;
-          gap: 16px;
-          margin-bottom: 12px;
-        }
-        .mm-message {
-          padding: 14px 0;
-          margin-bottom: 14px;
-          border-radius: 7px;
-          text-align: center;
-          font-weight: 500;
-        }
+      <style>{`
+        .match-manager-main { background: #f8fafc; padding: 40px 0; min-height: 100vh; }
+        .match-manager-container { background: #fff; border-radius: 14px; box-shadow: 0 4px 24px #0001; max-width: 900px; margin: 0 auto; padding: 30px 30px 40px 30px; }
+        .mm-header { text-align: center; font-size: 2rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 32px; }
+        .mm-teams-row { display: flex; align-items: stretch; justify-content: center; gap: 32px; margin-bottom: 18px; }
+        .mm-card { background: #f1f5f9; flex: 1; padding: 24px 18px; border-radius: 12px; text-align: center; box-shadow: 0 2px 10px #0001; min-width: 180px; }
+        .mm-card label { font-size: 1.15rem; font-weight: 500; margin-bottom: 10px; display: block; color: #222; }
+        .mm-card select { font-size: 1rem; width: 90%; padding: 9px 8px; border-radius: 6px; border: 1px solid #cbd5e1; margin-top: 10px; background: #fff; color: #222; }
+        .mm-vs { display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: bold; color: #64748b; min-width: 65px; }
+        .mm-fields-row { display: flex; gap: 18px; margin-bottom: 18px; align-items: flex-end; }
+        .mm-fields-row > div { flex: 1; }
+        .mm-fields-row label { font-size: 1rem; font-weight: 500; color: #222; }
+        .mm-fields-row input, .mm-fields-row select { width: 100%; font-size: 1rem; border-radius: 6px; border: 1px solid #cbd5e1; padding: 8px 8px; margin-top: 5px; background: #fff; color: #222; }
+        .mm-fields-row input:focus, .mm-fields-row select:focus, .mm-card select:focus { border: 1.5px solid #2563eb; outline: none; }
+        .mm-btns-row { display: flex; gap: 16px; margin-bottom: 12px; }
+        .mm-btn-main { background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 10px 20px; cursor: pointer; }
+        .mm-btn-main:hover { background: #1e40af; }
+        .mm-btn-cancel { background: #6b7280; color: #fff; border: none; border-radius: 6px; padding: 10px 20px; cursor: pointer; }
+        .mm-btn-cancel:hover { background: #4b5563; }
+        .mm-message { padding: 14px 0; margin-bottom: 14px; border-radius: 7px; text-align: center; font-weight: 500; }
         .mm-message.error { background: #fee2e2; color: #991b1b; }
         .mm-message.success { background: #bbf7d0; color: #14532d; }
-        .mm-table-container {
-          overflow-x: auto;
-          margin-top: 26px;
-        }
-        .mm-table {
-          width: 100%;
-          border-collapse: collapse;
-          background: #fff;
-          color: #222 !important;
-        }
-        .mm-table th, .mm-table td {
-          padding: 10px 12px;
-          text-align: center;
-          border-bottom: 1px solid #e2e8f0;
-        }
-        .mm-table th {
-          background: #e5e7eb !important;
-          color: #1e293b !important;
-          font-weight: bold;
-          opacity: 1 !important;
-        }
-        .mm-table td {
-          color: #222 !important;
-          opacity: 1 !important;
-        }
-        .mm-table tr:nth-child(even) td {
-          background: #f9fafb;
-        }
-        .mm-table-status {
-          padding: 3px 10px;
-          border-radius: 10px;
-          font-weight: bold;
-          font-size: 13px;
-          display: inline-block;
-        }
-        .mm-status-pending {
-          background: #fef3c7;
-          color: #92400e;
-        }
-        .mm-status-completed {
-          background: #d1fae5;
-          color: #065f46;
-        }
-        .mm-status-cancelled {
-          background: #fee2e2;
-          color: #991b1b;
-        }
-        `}
-      </style>
+        .mm-table-container { overflow-x: auto; margin-top: 26px; }
+        .mm-table { width: 100%; border-collapse: collapse; background: #fff; color: #222 !important; }
+        .mm-table th, .mm-table td { padding: 10px 12px; text-align: center; border-bottom: 1px solid #e2e8f0; }
+        .mm-table th { background: #e5e7eb !important; color: #1e293b !important; font-weight: bold; opacity: 1 !important; }
+        .mm-table td { color: #222 !important; opacity: 1 !important; }
+        .mm-table tr:nth-child(even) td { background: #f9fafb; }
+        .mm-table-status { padding: 3px 10px; border-radius: 10px; font-weight: bold; font-size: 13px; display: inline-block; }
+        .mm-status-pending { background: #fef3c7; color: #92400e; }
+        .mm-status-completed { background: #d1fae5; color: #065f46; }
+        .mm-status-cancelled { background: #fee2e2; color: #991b1b; }
+      `}</style>
       <div className="match-manager-container">
         <div className="mm-header">{editId ? "Editar Partido" : "Programar Partido"}</div>
         {error && <div className="mm-message error">{error}</div>}
@@ -422,6 +322,24 @@ export default function MatchManager() {
           </div>
         </form>
 
+        {/* Filtro */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+          <input
+            type="text"
+            placeholder="Filtrar por equipo, estado, fecha..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            style={{
+              padding: "8px 14px",
+              border: "1.5px solid #cbd5e1",
+              borderRadius: "8px",
+              fontSize: "1rem",
+              minWidth: "260px",
+              background: "#f3f4f6"
+            }}
+          />
+        </div>
+
         <div className="mm-table-container">
           <h3 style={{ fontSize: 18, fontWeight: "bold", marginBottom: 12 }}>Partidos Programados</h3>
           <table className="mm-table">
@@ -437,7 +355,7 @@ export default function MatchManager() {
               </tr>
             </thead>
             <tbody>
-              {matches.map((match) => (
+              {filteredMatches.map((match) => (
                 <tr key={match.id}>
                   <td>{match.date}</td>
                   <td>{match.startTime.slice(0, 5)} - {match.endTime.slice(0, 5)}</td>
@@ -466,7 +384,7 @@ export default function MatchManager() {
                   </td>
                 </tr>
               ))}
-              {matches.length === 0 && (
+              {filteredMatches.length === 0 && (
                 <tr>
                   <td colSpan={7} style={{ textAlign: "center", color: "#6b7280", padding: "16px 0" }}>
                     No hay partidos programados.

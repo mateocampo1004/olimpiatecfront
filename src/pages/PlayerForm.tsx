@@ -5,11 +5,13 @@ import { Player } from "../types/player";
 import { Team } from "../types/team";
 import { useNavigate } from "react-router-dom";
 import Modal from "../components/Modal";
+import FilterBar from "../components/FilterBar";
 
 export default function PlayerForm() {
   const token = localStorage.getItem("token")!;
   const navigate = useNavigate();
 
+  // Datos
   const [players, setPlayers] = useState<Player[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [modalMessage, setModalMessage] = useState("");
@@ -22,77 +24,67 @@ export default function PlayerForm() {
   });
   const [openModal, setOpenModal] = useState(false);
 
+  // Estado de búsqueda
+  const [searchTerm, setSearchTerm] = useState("");
+
   useEffect(() => {
-    const loadPlayers = async () => {
+    const load = async () => {
       const data = await getPlayers(token);
-      const sorted = data.sort((a: Player, b: Player) =>
+      // Tipamos a y b como Player para TS
+      const sortedPlayers = data.sort((a: Player, b: Player) =>
         a.name.localeCompare(b.name)
       );
-      setPlayers(sorted);
-    };
+      setPlayers(sortedPlayers);
 
-    const loadTeams = async () => {
-      const data = await getTeams(token);
-      setTeams(data);
+      const teamData = await getTeams(token);
+      setTeams(teamData);
     };
-
-    loadPlayers();
-    loadTeams();
+    load();
   }, [token]);
 
   const handleDorsalInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (/^\d*$/.test(value)) {
-      setForm({ ...form, dorsal: value });
+    if (/^\d*$/.test(e.target.value)) {
+      setForm({ ...form, dorsal: e.target.value });
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     const dorsalNum = Number(form.dorsal);
 
-    if (!form.name || !form.cedula || !form.carrera || form.dorsal.trim() === "" || form.teamId === 0) {
+    // Validaciones
+    if (!form.name || !form.cedula || !form.carrera || !form.dorsal.trim() || form.teamId === 0) {
       setModalMessage("Todos los campos son obligatorios");
       return;
     }
-
     if (!/^\d{10}$/.test(form.cedula)) {
       setModalMessage("La cédula debe tener exactamente 10 dígitos numéricos");
       return;
     }
-
     if (isNaN(dorsalNum) || dorsalNum <= 0) {
       setModalMessage("El dorsal debe ser un número mayor a 0");
       return;
     }
-
-    const duplicateCedula = players.find(
-      (p) => p.cedula === form.cedula && p.team?.id === form.teamId
-    );
-    if (duplicateCedula) {
+    if (players.find(p => p.cedula === form.cedula && p.team?.id === form.teamId)) {
       setModalMessage("Ya existe un jugador con esa cédula en ese equipo");
       return;
     }
-
-    const duplicateDorsal = players.find(
-      (p) => p.dorsal === dorsalNum && p.team?.id === form.teamId
-    );
-    if (duplicateDorsal) {
+    if (players.find(p => p.dorsal === dorsalNum && p.team?.id === form.teamId)) {
       setModalMessage("Ya existe un jugador con ese dorsal en ese equipo");
       return;
     }
 
+    // Envío
     try {
       await createPlayer({ ...form, dorsal: dorsalNum }, token);
       setModalMessage("Jugador registrado correctamente");
       setForm({ name: "", cedula: "", dorsal: "", carrera: "", teamId: 0 });
 
       const data = await getPlayers(token);
-      const sorted = data.sort((a: Player, b: Player) =>
+      const sortedPlayers2 = data.sort((a: Player, b: Player) =>
         a.name.localeCompare(b.name)
       );
-      setPlayers(sorted);
+      setPlayers(sortedPlayers2);
 
       setTimeout(() => {
         setOpenModal(false);
@@ -103,41 +95,47 @@ export default function PlayerForm() {
     }
   };
 
+  // Lista filtrada
+  const filteredPlayers = players.filter(p =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.cedula.includes(searchTerm) ||
+    p.dorsal.toString().includes(searchTerm) ||
+    p.carrera.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    p.team?.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <main className="container">
-      {/* Botón Volver rediseñado como en la imagen */}
+      {/* Botón Volver */}
       <button
         onClick={() => navigate("/panel")}
         style={{
           backgroundColor: "#f3f4f6",
-          borderRadius: "12px",
+          borderRadius: 12,
           padding: "8px 12px",
           border: "none",
-          boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
           cursor: "pointer",
+          width: 40,
+          height: 40,
+          marginBottom: 20,
           display: "flex",
           alignItems: "center",
-          justifyContent: "center",
-          width: "40px",
-          height: "40px",
-          marginBottom: "20px"
+          justifyContent: "center"
         }}
       >
-        <span style={{ fontSize: "18px", color: "#374151" }}>←</span>
+        <span style={{ fontSize: 18, color: "#374151" }}>←</span>
       </button>
 
       <h2 style={{ color: "#2563eb", fontWeight: "bold", marginBottom: 20 }}>
         Gestión de jugadores
       </h2>
 
-      <button
-        className="btn-primary"
-        onClick={() => setOpenModal(true)}
-        style={{ marginBottom: 28 }}
-      >
+      <button className="btn-primary" onClick={() => setOpenModal(true)} style={{ marginBottom: 28 }}>
         Registrar jugador
       </button>
 
+      {/* Modal de registro */}
       <Modal
         isOpen={openModal}
         onClose={() => { setOpenModal(false); setModalMessage(""); }}
@@ -148,12 +146,12 @@ export default function PlayerForm() {
           <div
             style={{
               padding: "10px 14px",
-              marginBottom: "12px",
+              marginBottom: 12,
               background: modalMessage.includes("Error") ? "#fee2e2" :
-                modalMessage.includes("registrado") ? "#d1fae5" : "#fffbe5",
+                         modalMessage.includes("registrado") ? "#d1fae5" : "#fffbe5",
               color: modalMessage.includes("Error") ? "#991b1b" :
-                modalMessage.includes("registrado") ? "#065f46" : "#924400",
-              borderRadius: "10px",
+                     modalMessage.includes("registrado") ? "#065f46" : "#924400",
+              borderRadius: 10,
               border: `1px solid ${modalMessage.includes("Error") ? "#fca5a5" : "#a7f3d0"}`
             }}
           >
@@ -165,17 +163,16 @@ export default function PlayerForm() {
             type="text"
             placeholder="Nombre"
             value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
+            onChange={e => setForm({ ...form, name: e.target.value })}
           />
           <input
             type="text"
             placeholder="Cédula"
             maxLength={10}
             value={form.cedula}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (/^\d{0,10}$/.test(value)) {
-                setForm({ ...form, cedula: value });
+            onChange={e => {
+              if (/^\d{0,10}$/.test(e.target.value)) {
+                setForm({ ...form, cedula: e.target.value });
               }
             }}
           />
@@ -192,30 +189,20 @@ export default function PlayerForm() {
             type="text"
             placeholder="Carrera"
             value={form.carrera}
-            onChange={(e) => setForm({ ...form, carrera: e.target.value })}
+            onChange={e => setForm({ ...form, carrera: e.target.value })}
           />
           <select
             value={form.teamId}
-            onChange={(e) => setForm({ ...form, teamId: Number(e.target.value) })}
+            onChange={e => setForm({ ...form, teamId: Number(e.target.value) })}
           >
             <option value={0}>Selecciona un equipo</option>
-            {teams.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name}
-              </option>
+            {teams.map(t => (
+              <option key={t.id} value={t.id}>{t.name}</option>
             ))}
           </select>
-          <div style={{ display: "flex", gap: 12, marginTop: 8, justifyContent: "center" }}>
-            <button className="btn-primary" type="submit">
-              Guardar
-            </button>
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={() => { setOpenModal(false); setModalMessage(""); }}
-            >
-              Cancelar
-            </button>
+          <div style={{ display: "flex", gap: 12, justifyContent: "center", marginTop: 8 }}>
+            <button className="btn-primary" type="submit">Guardar</button>
+            <button className="btn-secondary" type="button" onClick={() => { setOpenModal(false); setModalMessage(""); }}>Cancelar</button>
           </div>
         </form>
       </Modal>
@@ -225,6 +212,16 @@ export default function PlayerForm() {
       <h3 style={{ marginBottom: 16, color: "#374151", fontWeight: 600 }}>
         Lista de jugadores registrados
       </h3>
+
+      {/* Filtro */}
+      <FilterBar
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        searchPlaceholder="Buscar jugadores…"
+        onClear={() => setSearchTerm("")}
+      />
+
+      {/* Tabla filtrada */}
       <table>
         <thead>
           <tr>
@@ -237,9 +234,9 @@ export default function PlayerForm() {
           </tr>
         </thead>
         <tbody>
-          {players.map((p, index) => (
+          {filteredPlayers.map((p, i) => (
             <tr key={p.id}>
-              <td>{index + 1}</td>
+              <td>{i + 1}</td>
               <td>{p.name}</td>
               <td>{p.cedula}</td>
               <td>{p.dorsal}</td>

@@ -3,6 +3,15 @@ import { getMatches, MatchDTO } from "../../api/matches";
 import { getTeamOfRepresentative } from "../../api/teams";
 import { useNavigate } from "react-router-dom";
 import { getMyReportForMatch } from "../../api/matchreport";
+import StatusBadge from "../../components/StatusBadge";
+import DataTable from "../../components/DataTable";
+
+// Etiquetas legibles
+const ESTADO_LABELS: Record<string, string> = {
+  PENDING: "Pendiente",
+  COMPLETED: "Jugado",
+  CANCELLED: "Cancelado",
+};
 
 export default function MyMatches() {
   const [team, setTeam] = useState<{ id: number; name: string } | null>(null);
@@ -10,27 +19,25 @@ export default function MyMatches() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reports, setReports] = useState<{ [matchId: number]: boolean }>({});
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const token = localStorage.getItem("token") || "";
   const navigate = useNavigate();
 
+  // Traer datos y filtrar solo mis partidos
   useEffect(() => {
     async function fetchData() {
       try {
-        // 1. Obtener equipo del representante
         const myTeam = await getTeamOfRepresentative(token);
         setTeam(myTeam);
 
-        // 2. Obtener todos los partidos
         const allMatches = await getMatches();
-
-        // 3. Filtrar solo los partidos de este equipo (local o visitante)
         const myMatches = allMatches.filter(
           (m) => m.homeTeamName === myTeam.name || m.awayTeamName === myTeam.name
         );
 
-        // Ordenar por fecha descendente (más reciente primero)
+        // Más recientes primero
         myMatches.sort((a, b) => b.date.localeCompare(a.date));
-
         setMatches(myMatches);
       } catch (e: any) {
         setError("Error cargando partidos.");
@@ -41,7 +48,7 @@ export default function MyMatches() {
     fetchData();
   }, [token]);
 
-  // Consultar estado de reporte para cada partido
+  // Saber si ya hay reporte para cada partido
   useEffect(() => {
     async function fetchReports() {
       const reportStates: { [matchId: number]: boolean } = {};
@@ -60,76 +67,145 @@ export default function MyMatches() {
     }
   }, [matches, token]);
 
-  if (loading) return <div className="text-center mt-6">Cargando partidos...</div>;
-  if (error) return <div className="text-center text-red-600">{error}</div>;
+  // Filtro y búsqueda
+  const filteredMatches = matches.filter((match) => {
+    const normalized = (s: string) => (s || "").toLowerCase();
+    const statusMatch =
+      !statusFilter || match.status === statusFilter;
+    const search =
+      normalized(match.date).includes(normalized(searchTerm)) ||
+      normalized(match.startTime).includes(normalized(searchTerm)) ||
+      normalized(match.homeTeamName).includes(normalized(searchTerm)) ||
+      normalized(match.awayTeamName).includes(normalized(searchTerm)) ||
+      normalized(match.location).includes(normalized(searchTerm)) ||
+      normalized(ESTADO_LABELS[match.status] || "").includes(normalized(searchTerm));
+    return statusMatch && (!searchTerm || search);
+  });
+
+  // Columnas para DataTable
+  const columns = [
+    {
+      key: "date",
+      label: "Fecha",
+      sortable: true,
+    },
+    {
+      key: "startTime",
+      label: "Hora",
+      sortable: true,
+      render: (_: string, row: MatchDTO) => (
+        <>
+          {row.startTime.slice(0, 5)} - {row.endTime.slice(0, 5)}
+        </>
+      ),
+    },
+    {
+      key: "homeTeamName",
+      label: "Local",
+      sortable: true,
+    },
+    {
+      key: "awayTeamName",
+      label: "Visitante",
+      sortable: true,
+    },
+    {
+      key: "location",
+      label: "Lugar",
+      sortable: true,
+    },
+    {
+      key: "status",
+      label: "Estado",
+      sortable: true,
+      render: (status: string) => <StatusBadge status={status} size="sm" />,
+    },
+    {
+      key: "actions",
+      label: "Acciones",
+      render: (_: any, match: MatchDTO) =>
+        match.status !== "COMPLETED" ? (
+          reports[match.id] ? (
+            <button
+              className="btn-tertiary btn-sm"
+              onClick={() => navigate(`/my-matches/${match.id}/report`)}
+            >
+              ✏️ Editar Alineación
+            </button>
+          ) : (
+            <button
+              className="btn-primary btn-sm"
+              onClick={() => navigate(`/my-matches/${match.id}/report`)}
+            >
+              📝 Registrar Alineación
+            </button>
+          )
+        ) : null,
+      align: "center" as const,
+    },
+  ];
 
   return (
-    <div className="max-w-4xl mx-auto my-8 p-4 bg-white rounded shadow">
-      <h2 className="text-2xl font-bold mb-4 text-white">Mis Partidos</h2>
-      {!matches.length ? (
-        <div className="text-gray-600 text-center py-8">No tienes partidos programados aún.</div>
-      ) : (
-        <table className="min-w-full border border-gray-200 rounded-lg">
-          <thead>
-            <tr className="bg-gray-100">
-              <th className="px-4 py-2">Fecha</th>
-              <th className="px-4 py-2">Hora</th>
-              <th className="px-4 py-2">Local</th>
-              <th className="px-4 py-2">Visitante</th>
-              <th className="px-4 py-2">Lugar</th>
-              <th className="px-4 py-2">Estado</th>
-              <th className="px-4 py-2">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {matches.map((match) => (
-              <tr key={match.id} className="hover:bg-gray-50 transition">
-                <td className="px-4 py-2">{match.date}</td>
-                <td className="px-4 py-2">
-                  {match.startTime.slice(0, 5)} - {match.endTime.slice(0, 5)}
-                </td>
-                <td className="px-4 py-2">{match.homeTeamName}</td>
-                <td className="px-4 py-2">{match.awayTeamName}</td>
-                <td className="px-4 py-2">{match.location}</td>
-                <td className="px-4 py-2">
-                  {match.status === "PENDING" ? (
-                    <span className="inline-block bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-bold">
-                      Pendiente
-                    </span>
-                  ) : match.status === "COMPLETED" ? (
-                    <span className="inline-block bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-bold">
-                      Jugado
-                    </span>
-                  ) : (
-                    <span className="inline-block bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-bold">
-                      Cancelado
-                    </span>
-                  )}
-                </td>
-                <td className="px-4 py-2">
-                  {/* Solo mostrar botón si NO está jugado */}
-                  {match.status !== "COMPLETED" ? (
-                    reports[match.id] ? (
-                      <button
-                        className="btn-tertiary btn-sm"
-                        onClick={() => navigate(`/my-matches/${match.id}/report`)}
-                      >
-                        ✏️ Editar Alineacion
-                      </button>
-                    ) : (
-                      <button
-                        className="btn-primary btn-sm"
-                        onClick={() => navigate(`/my-matches/${match.id}/report`)}
-                      >
-                        📝 Registrar Alineacion
-                      </button>
-                    )
-                  ) : null}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div
+      style={{
+        maxWidth: 1100,
+        margin: "40px auto 0 auto",
+        padding: "0 20px",
+      }}
+    >
+      <div
+        className="text-3xl font-bold mb-8 text-white text-center drop-shadow"
+        style={{ textShadow: "0 2px 10px #1e40af33" }}
+      >
+        Mis Partidos
+      </div>
+
+      {/* Filtros */}
+      <div className="flex flex-col md:flex-row gap-3 mb-6 items-center justify-between">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          className="border border-gray-300 rounded px-3 py-2 w-full md:w-80"
+          placeholder="Por equipo, lugar, fecha, estado..."
+        />
+        <select
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+          className="border border-gray-300 rounded px-3 py-2 w-full md:w-60"
+        >
+          <option value="">Todos los estados</option>
+          <option value="PENDING">Pendiente</option>
+          <option value="COMPLETED">Jugado</option>
+          <option value="CANCELLED">Cancelado</option>
+        </select>
+      <button
+  className="btn-primary btn-sm"
+  style={{ minWidth: 130 }}
+  onClick={() => {
+    setSearchTerm("");
+    setStatusFilter("");
+  }}
+  type="button"
+>
+  Limpiar filtros
+</button>
+
+      </div>
+
+      {/* Tabla bonita tipo panel */}
+      <DataTable
+        data={filteredMatches}
+        columns={columns}
+        loading={loading}
+        emptyMessage="No se encontraron partidos"
+        hoverable
+        striped
+      />
+      {error && (
+        <div className="text-center text-red-600 mt-4">
+          {error}
+        </div>
       )}
     </div>
   );
