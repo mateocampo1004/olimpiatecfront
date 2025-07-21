@@ -264,10 +264,15 @@ export default function MatchEvents() {
                     <li key={e.id}>
                       {renderIcon(e)} {e.minute}' - {e.type} {e.detail && `(${e.detail})`} - {e.playerName}
                       {canEditOrDelete() && (
-                        <>
-                          <button className="ml-2 bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-1 rounded" onClick={() => handleEditEvent(e)}>Editar</button>
-                          <button className="ml-2 bg-red-100 hover:bg-red-200 text-red-800 px-2 py-1 rounded" onClick={() => handleDeleteEvent(e.id)}>Eliminar</button>
-                        </>
+                        <div className="flex gap-2">
+  <button className="btn-primary btn-sm" onClick={() => handleEditEvent(e)}>
+    Editar
+  </button>
+  <button className="btn-secondary btn-sm" onClick={() => handleDeleteEvent(e.id)}>
+    Eliminar
+  </button>
+</div>
+
                       )}
                     </li>
                   )
