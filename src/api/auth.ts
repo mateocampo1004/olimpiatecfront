@@ -1,7 +1,8 @@
 import axios from "axios";
 import { RegisterDTO } from "../types/User";
 
-const API =  "http://localhost:8080";
+const API = process.env.REACT_APP_API_URL || "/api";
+
 
 export const login = async (email: string, password: string) => {
   const response = await axios.post(`${API}/auth/login`, {

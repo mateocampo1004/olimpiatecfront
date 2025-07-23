@@ -1,5 +1,5 @@
 import axios from "axios";
-const API =  "http://localhost:8080";
+const API = process.env.REACT_APP_API_URL || "/api";
 
 export const getPlayersByTeam = async (teamId: number, token: string) => {
   const res = await axios.get(`${API}/players/by-team/${teamId}`, {

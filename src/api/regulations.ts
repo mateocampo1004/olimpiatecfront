@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API =  "http://localhost:8080";
+const API = process.env.REACT_APP_API_URL || "/api";
+
 
 // Subir PDF del reglamento
 export const uploadRegulation = async (file: File, token: string) => {
