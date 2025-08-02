@@ -51,6 +51,7 @@ const isTokenValid = (token: string | null): boolean => {
 
 export default function App() {
   const [role, setRole] = useState<string>("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -67,61 +68,156 @@ export default function App() {
   const handleLogout = () => {
     localStorage.removeItem("token");
     setRole("");
+    setSidebarOpen(false);
     window.location.href = "/campeonato";
   };
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setSidebarOpen(false);
+  };
   return (
     <Router>
-      <nav className="navbar">
-        <div className="navbar-links">
+      {/* Material Design App Bar */}
+      <header className="md-app-bar">
+        <div className="md-app-bar-content">
+          <button 
+            className="md-icon-button md-menu-button"
+            onClick={toggleSidebar}
+            aria-label="Abrir menú"
+          >
+            <span className="material-icons">menu</span>
+          </button>
+          
+          <div className="md-app-bar-title">
+            <span className="md-title">OLIMPIATEC</span>
+            <span className="md-subtitle">Sistema de Gestión</span>
+          </div>
+
+          <div className="md-app-bar-actions">
+            {role ? (
+              <button className="md-button md-button-text" onClick={handleLogout}>
+                <span className="material-icons">logout</span>
+                <span className="md-button-label">Cerrar sesión</span>
+              </button>
+            ) : (
+              <Link to="/login" className="md-button md-button-contained">
+                <span className="material-icons">login</span>
+                <span className="md-button-label">Iniciar sesión</span>
+              </Link>
+            )}
+          </div>
+        </div>
+      </header>
+
+      {/* Material Design Navigation Drawer */}
+      <div className={`md-nav-drawer-scrim ${sidebarOpen ? 'md-nav-drawer-scrim--open' : ''}`} onClick={closeSidebar}></div>
+      
+      <nav className={`md-nav-drawer ${sidebarOpen ? 'md-nav-drawer--open' : ''}`}>
+        <div className="md-nav-drawer-header">
+          <div className="md-nav-drawer-title">
+            <span className="material-icons md-nav-drawer-icon">sports_soccer</span>
+            <div className="md-nav-drawer-text">
+              <h3>OLIMPIATEC</h3>
+              <p>Gestión de Campeonato</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="md-nav-drawer-content">
+          {/* Sección Pública */}
+          <div className="md-nav-section">
+            <h4 className="md-nav-section-title">General</h4>
+            <Link to="/reglamento" className="md-nav-item" onClick={closeSidebar}>
+              <span className="material-icons">description</span>
+              <span>Reglamento</span>
+            </Link>
+            <Link to="/campeonato" className="md-nav-item" onClick={closeSidebar}>
+              <span className="material-icons">emoji_events</span>
+              <span>Campeonato</span>
+            </Link>
+          </div>
+
           {/* ADMIN */}
           {role === "ADMIN" && (
-            <div className="dropdown">
-              <button className="dropdown-button">Administración</button>
-              <div className="dropdown-content">
-                <Link to="/panel">Gestión Usuarios</Link>
-                <Link to="/teams">Gestión Equipos</Link>
-                <Link to="/players/form">Gestión Jugadores</Link>
-                <Link to="/regulations/admin">Gestión Reglamento</Link>
-                <Link to="/matches/create">Programar Partido</Link>
-                <Link to="/reportes">Generar Reportes</Link>
-                <Link to="/admin/validacion">Validación</Link>
-                <Link to="/admin/historial-validacion">Historial Validación</Link>
-                <Link to="/admin/logs">Logs de Auditoría</Link>
-              </div>
+            <div className="md-nav-section">
+              <h4 className="md-nav-section-title">Administración</h4>
+              <Link to="/panel" className="md-nav-item" onClick={closeSidebar}>
+                <span className="material-icons">people</span>
+                <span>Gestión Usuarios</span>
+              </Link>
+              <Link to="/teams" className="md-nav-item" onClick={closeSidebar}>
+                <span className="material-icons">groups</span>
+                <span>Gestión Equipos</span>
+              </Link>
+              <Link to="/players/form" className="md-nav-item" onClick={closeSidebar}>
+                <span className="material-icons">person_add</span>
+                <span>Gestión Jugadores</span>
+              </Link>
+              <Link to="/regulations/admin" className="md-nav-item" onClick={closeSidebar}>
+                <span className="material-icons">rule</span>
+                <span>Gestión Reglamento</span>
+              </Link>
+              <Link to="/matches/create" className="md-nav-item" onClick={closeSidebar}>
+                <span className="material-icons">event</span>
+                <span>Programar Partido</span>
+              </Link>
+              <Link to="/reportes" className="md-nav-item" onClick={closeSidebar}>
+                <span className="material-icons">assessment</span>
+                <span>Generar Reportes</span>
+              </Link>
+              <Link to="/admin/validacion" className="md-nav-item" onClick={closeSidebar}>
+                <span className="material-icons">verified</span>
+                <span>Validación</span>
+              </Link>
+              <Link to="/admin/historial-validacion" className="md-nav-item" onClick={closeSidebar}>
+                <span className="material-icons">history</span>
+                <span>Historial Validación</span>
+              </Link>
+              <Link to="/admin/logs" className="md-nav-item" onClick={closeSidebar}>
+                <span className="material-icons">bug_report</span>
+                <span>Logs de Auditoría</span>
+              </Link>
             </div>
           )}
 
           {/* JUGADOR */}
           {role === "JUGADOR" && (
-            <>
-              <Link to="/my-team">Mi equipo</Link>
-              <Link to="/my-team/create-player">Gestión Jugadores</Link>
-              <Link to="/my-matches">Mis Partidos</Link>
-            </>
+            <div className="md-nav-section">
+              <h4 className="md-nav-section-title">Mi Equipo</h4>
+              <Link to="/my-team" className="md-nav-item" onClick={closeSidebar}>
+                <span className="material-icons">group</span>
+                <span>Mi equipo</span>
+              </Link>
+              <Link to="/my-team/create-player" className="md-nav-item" onClick={closeSidebar}>
+                <span className="material-icons">person_add</span>
+                <span>Gestión Jugadores</span>
+              </Link>
+              <Link to="/my-matches" className="md-nav-item" onClick={closeSidebar}>
+                <span className="material-icons">sports</span>
+                <span>Mis Partidos</span>
+              </Link>
+            </div>
           )}
+
           {/* MESA */}
           {role === "MESA" && (
-            <>
-              <Link to="/matches">Registrar Eventos</Link>
-            </>
+            <div className="md-nav-section">
+              <h4 className="md-nav-section-title">Mesa de Control</h4>
+              <Link to="/matches" className="md-nav-item" onClick={closeSidebar}>
+                <span className="material-icons">edit</span>
+                <span>Registrar Eventos</span>
+              </Link>
+            </div>
           )}
-          {/* Público */}
-          <Link to="/reglamento">Reglamento</Link>
-          <Link to="/campeonato">Campeonato</Link>
         </div>
-
-        {role ? (
-          <button className="btn-secondary" onClick={handleLogout}>
-            Cerrar sesión
-          </button>
-        ) : (
-          <Link to="/login">
-            <button className="btn-primary">Iniciar sesión</button>
-          </Link>
-        )}
       </nav>
 
+      {/* Main Content */}
+      <main className={`md-main-content ${sidebarOpen ? 'md-main-content--shifted' : ''}`}>
       <Routes>
         {/* Rutas públicas */}
         <Route path="/reglamento" element={<RegulationViewer />} />
@@ -154,6 +250,7 @@ export default function App() {
 
         <Route path="*" element={<Navigate to="/campeonato" />} />
       </Routes>
+      </main>
     </Router>
   );
 }
